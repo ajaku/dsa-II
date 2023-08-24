@@ -139,17 +139,53 @@ class hashTable {
 
   vector<hashItem> data; // The actual entries are here.
 
+
+  int rehash_insert(const string &key, void *pv, vector<hashItem>* new_vec) {
+    cout << "Filled: " << filled << "\tCapacity: " << capacity << "\n";
+    if ((double)filled/(double)capacity >= 0.5) {
+      rehash();
+    }
+    int loc = hash(key);
+    if ((*new_vec)[loc].isOccupied) {
+      if ((*new_vec)[loc].key != key) {
+        // collission
+        int i = loc;
+        while ((*new_vec)[i].isOccupied) {
+          cout << "Key: " << key << "\tInsert: Looking for free data\n"; 
+          if (i >= capacity) {
+            i = -1;
+          }
+          i++;
+        }
+        (*new_vec)[i].key = key;
+        (*new_vec)[i].isOccupied = true;
+        filled++;
+        cout << "Location: " << i << "\n";
+        return 0;
+      }
+      // Duplicate value
+      cout << "Duplicate value\n";
+      return 1;
+    }
+    (*new_vec)[loc].key = key;
+    (*new_vec)[loc].isOccupied = true;
+    (*new_vec)[loc].pv = pv;
+    filled++;
+    cout << "Location: " << loc << "\n";
+    return 0;
+  }
+
+
   // The hash function.
   int hash(const string &key) {
-    static int initial_cap = capacity;
     int hashVal = 0;
     for(int i = 0; i < key.length(); i++) {
       hashVal = 37 * hashVal + key[i];
     }
-    hashVal %= initial_cap; // ensures values are limited to 0-capacity
+    hashVal %= capacity; // ensures values are limited to 0-capacity
 
     if (hashVal < 0) {
-      hashVal += initial_cap;
+      hashVal += capacity;
     } 
     return hashVal;
   }
@@ -174,8 +210,10 @@ class hashTable {
     }
     for (int i = 0; i < prev_cap; i++) {
       new_vec[i] = data[i];
+      rehash_insert(data[i].key, data[i].pv, &new_vec);
     }
     printf("Calloc worked\n");
+    data.clear(); 
     data.swap(new_vec);
     return true;
   }
@@ -235,9 +273,7 @@ int main() {
     parse_input(file, table);
     cout << "Loc of abroad: " << table.contains("abroad") << "\n";
     cout << "Loc of aboard: " << table.contains("aboard") << "\n";
-    // Values still exist, just contains can't, find them
-    cout << table.findLoc(9458) << "\n"; 
-    cout << table.findLoc(29891) << "\n"; 
-    cout << table.findLoc(29891) << "\n"; 
+    cout << "Loc of Zurich: " << table.contains("Zurich") << "\n";
+
     return 0;
 }
