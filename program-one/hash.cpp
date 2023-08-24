@@ -4,6 +4,8 @@
 #include <functional>
 #include <string>
 #include <algorithm>
+#include <unistd.h>
+#define MAX_IDX 8
 
 using namespace std;
 
@@ -19,11 +21,15 @@ class hashTable {
   }
 
   hashTable(int size) {
-    capacity = getPrime(size);
-    hashItem* ptr = (hashItem*)calloc(capacity, sizeof(hashItem));
+    capacity = primes[prime_idx];
+    list = (hashItem*)calloc(capacity, sizeof(hashItem));
     for (int i = 0; i < capacity; i ++) {
-      data.push_back(ptr[i]);
+      data.push_back(list[i]);
     }
+  }
+
+  ~hashTable() {
+    free(list);
   }
 
   // Insert the specified key into the hash table.
@@ -35,7 +41,8 @@ class hashTable {
   int insert(const string &key, void *pv = nullptr) {
     cout << "Filled: " << filled << "\tCapacity: " << capacity << "\n";
     if ((double)filled/(double)capacity >= 0.5) {
-      rehash();
+      cout << "Filled: " << filled << "\t Capacity: " << capacity << "\n";
+       rehash();
     }
     int loc = hash(key);
     if (data[loc].isOccupied) {
@@ -75,32 +82,18 @@ class hashTable {
     // if collission, iterate through entire table to see if value exists
     //    Note: A value must exist if a collision is true!
     int loc = hash(key); // Location of key
-    cout << "Contains Loc: " << loc << "\n";
     if (!data[loc].isOccupied)  { return false; } // value doesn't exist
 
-    if (data[loc].key == key)   { cout << "Value contained at: " << loc << "\n"; return true; } // Value found
+    if (data[loc].key == key)   { return true; } // Value found
     
     int i = loc;
-    /*for (int i = 0; i < capacity; i++) {
-      if(data[i].key == "aboard") {
-        cout << "Loc: " << loc << "\ti: " << i << "\n";
-        exit(1);
-      }
-    }
-    */
     while (data[i].key != key) {
-      cout << "Empty Key: " << data[i].key << "\ti: " << i << "\tCapacity: " << capacity << "\n";
       i++;
       if (i >= capacity) {
         i = 0;
       }
     }
-    cout << "Value contained at: " << i << "\n";
     return true;
-  }
-
-  void do_rehash() {
-    rehash();
   }
 
   int getCapacity() {
@@ -133,18 +126,16 @@ class hashTable {
 
     hashItem() = default;
   };
-
+  
+  hashItem* list;
   int capacity = 0; // The current capacity of the hash table.
   int filled = 0; // Number of occupied items in the table.
-
+  int primes[8] = {25933, 50021, 100003, 200003, 400009, 800011, 1600033, 3200003};
+  int prime_idx = 0;
   vector<hashItem> data; // The actual entries are here.
 
 
-  int rehash_insert(const string &key, void *pv, vector<hashItem>* new_vec) {
-    cout << "Filled: " << filled << "\tCapacity: " << capacity << "\n";
-    if ((double)filled/(double)capacity >= 0.5) {
-      rehash();
-    }
+  int rehash_insert(const string &key, void *pv = nullptr, vector<hashItem>* new_vec = nullptr) {
     int loc = hash(key);
     if ((*new_vec)[loc].isOccupied) {
       if ((*new_vec)[loc].key != key) {
@@ -175,7 +166,6 @@ class hashTable {
     return 0;
   }
 
-
   // The hash function.
   int hash(const string &key) {
     int hashVal = 0;
@@ -197,57 +187,30 @@ class hashTable {
   // The rehash function; makes the hash table bigger.
   // Returns true on success, false if memory allocation fails.
   bool rehash() {
-    cout << "Over 50p filled\n";
-    //exit(1);
-    int prev_cap = capacity;
-    capacity = getPrime(capacity*2);
-    cout << "New cap: " << capacity << "\n";
+    prime_idx += 1;
+    if(this->prime_idx >= MAX_IDX) { 
+      cout << "Exceeding expected size\n";
+      exit(1);
+    }
+    capacity = primes[prime_idx];
     hashItem* ptr = (hashItem*)calloc(capacity, sizeof(hashItem));
-    //hashItem* ptr = (hashItem*)malloc(capacity*sizeof(hashItem));
     vector<hashItem> new_vec;
     for (int i = 0; i < capacity; i ++) {
       new_vec.push_back(ptr[i]);
     }
-    for (int i = 0; i < prev_cap; i++) {
-      new_vec[i] = data[i];
+    int prev = prime_idx - 1;
+    for (int i = 0; i < primes[prev]; i++) {
       rehash_insert(data[i].key, data[i].pv, &new_vec);
+      // need to make sure that this makes sense
     }
-    printf("Calloc worked\n");
     data.clear(); 
     data.swap(new_vec);
+    free(list);
+    list = ptr;
     return true;
   }
 
-  // Return a prime number at least as large as size.
-  // Uses a precomputed sequence of selected prime numbers.
-  static unsigned int getPrime(int size) {
-    if (size < 25000   ) { return 25933;   }
-    if (size <= 50000  )  { return 50021;   }
-    if (size <= 100000 )  { return 100003;  }
-    if (size <= 250000 )  { return 250007;  }
-    if (size <= 500000 )  { return 500009;  }
-    if (size <= 1000000)  { return 1000003; }
-    if (size <= 1500000)  { return 1500007; }
-    return 2000001;
-  }
-
 };
-
-int dupes(int arr[], int n) {
-  int res = 1;
-    // Pick all elements one by one
-    for (int i = 1; i < n; i++) {
-        int j = 0;
-        for (j = 0; j < i; j++)
-            if (arr[i] == arr[j])
-                break;
- 
-        // If not printed earlier, then print it
-        if (i == j)
-            res++;
-    }
-    return res;
-}
 
 int parse_input(string file, hashTable& table) {
   fstream new_file;
@@ -271,9 +234,9 @@ int main() {
     cout << "Capacity: " << table.getCapacity() << "\n";
     printf("Filled: %d\n", table.getFilled());
     parse_input(file, table);
-    cout << "Loc of abroad: " << table.contains("abroad") << "\n";
-    cout << "Loc of aboard: " << table.contains("aboard") << "\n";
-    cout << "Loc of Zurich: " << table.contains("Zurich") << "\n";
-
+    cout << "Does list contain abroad:  " << table.contains("abroad") << "\n";
+    cout << "Does list contain aboard:  " << table.contains("aboard") << "\n";
+    cout << "Does list contain abroad:  " << table.contains("abroadz") << "\n";
+    cout << "Does list contain Zurich:  " << table.contains("Zurich") << "\n";
     return 0;
 }
