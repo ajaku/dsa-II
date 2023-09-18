@@ -14,20 +14,15 @@ using namespace std;
 // The constructor initializes the hash table.
 // Uses getPrime to choose a prime number at least as large as
 // the specified size for the initial size of the hash table.
-hashTable::hashTable() {
-  capacity = 0;
-}
-
 hashTable::hashTable(int size) {
-  capacity = primes[prime_idx];
-  list = (hashItem*)calloc(capacity, sizeof(hashItem));
-  for (int i = 0; i < capacity; i ++) {
-    data.push_back(list[i]);
+  for (int i = 0; i < 8; i++) {
+   if (size < primes[i]) {
+    capacity = primes[i];
+    prime_idx = i;
+    break;
+   }
   }
-}
-
-hashTable::~hashTable() {
-  free(list);
+  data.resize(capacity);
 }
 
 // Insert the specified key into the hash table.
@@ -36,19 +31,22 @@ hashTable::~hashTable() {
 // Returns 0 on success,
 // 1 if key already exists in hash table,
 // 2 if rehash fails.
-int hashTable::insert(const string &key, void *pv = nullptr) {
-  //cout << "Filled: " << filled << "\tCapacity: " << capacity << "\n";
+int hashTable::insert(const string &key, void *pv) {
+  cout << "Filled: " << filled << "\tCapacity: " << capacity << "\n";
+  cout << "arithmetic" << (double)filled/(double)capacity << "\n";
   if ((double)filled/(double)capacity >= 0.5) {
-    //cout << "Filled: " << filled << "\t Capacity: " << capacity << "\n";
+    cout << "Filled: " << filled << "\t Capacity: " << capacity << "\n";
+    cout << "rehash time\n";
     rehash();
   }
+  cout << "here\n";
   int loc = hash(key);
   if (data[loc].isOccupied) {
     if (data[loc].key != key) {
       // collission
       int i = loc;
       while (data[i].isOccupied) {
-        //cout << "Key: " << key << "\tInsert: Looking for free data\n"; 
+        cout << "Key: " << key << "\tInsert: Looking for free data\n"; 
         if (i >= capacity) {
           i = -1;
         }
@@ -57,7 +55,7 @@ int hashTable::insert(const string &key, void *pv = nullptr) {
       data[i].key = key;
       data[i].isOccupied = true;
       filled++;
-      //cout << "Location: " << i << "\n";
+      cout << "Location: " << i << "\n";
       return 0;
     }
     // Duplicate value
@@ -68,7 +66,7 @@ int hashTable::insert(const string &key, void *pv = nullptr) {
   data[loc].isOccupied = true;
   data[loc].pv = pv;
   filled++;
-  //cout << "Location: " << loc << "\n";
+  cout << "Location: " << loc << "\n";
   return 0;
 }
 
@@ -109,7 +107,7 @@ string hashTable::findLoc(int loc) {
   return data[loc].key;
 }
 
-int hashTable::rehash_insert(const string &key, void *pv = nullptr, vector<hashItem>* new_vec = nullptr) {
+int hashTable::rehash_insert(const string &key, void *pv, vector<hashItem>* new_vec) {
   int loc = hash(key);
   if ((*new_vec)[loc].isOccupied) {
     if ((*new_vec)[loc].key != key) {
@@ -163,6 +161,7 @@ int findPos(const string &key);
 // The rehash function; makes the hash table bigger.
 // Returns true on success, false if memory allocation fails.
 bool hashTable::rehash() {
+  cout << "rehashing\n";
   prime_idx += 1;
   filled = 0;
   if(this->prime_idx >= MAX_IDX) { 
@@ -170,11 +169,7 @@ bool hashTable::rehash() {
     exit(1);
   }
   capacity = primes[prime_idx];
-  hashItem* ptr = (hashItem*)calloc(capacity, sizeof(hashItem));
-  vector<hashItem> new_vec;
-  for (int i = 0; i < capacity; i ++) {
-    new_vec.push_back(ptr[i]);
-  }
+  vector<hashItem> new_vec(capacity);
   int prev = prime_idx - 1;
   for (int i = 0; i < primes[prev]; i++) {
     rehash_insert(data[i].key, data[i].pv, &new_vec);
@@ -182,22 +177,5 @@ bool hashTable::rehash() {
   }
   data.clear(); 
   data.swap(new_vec);
-  free(list);
-  list = ptr;
   return true;
 }
-
-/*int main() {
-  hashTable table(25000);
-  cout << "Capacity: " << table.getCapacity() << "\n";
-  printf("Filled: %d\n", table.getFilled());
-  string doc, dict, output;
-  read_input(&dict, &doc, &output);
-  cout << "\nDict: " << dict << "\n";
-  parse_input(dict, table);
-  cout << "Does list contain abroad:  " << table.contains("abroad") << "\n";
-  cout << "Does list contain aboard:  " << table.contains("aboard") << "\n";
-  cout << "Does list contain abroad:  " << table.contains("abroadz") << "\n";
-  cout << "Does list contain Zurich:  " << table.contains("Zurich") << "\n";
-  return 0;
-}*/

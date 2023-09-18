@@ -14,12 +14,7 @@ class hashTable {
   // The constructor initializes the hash table.
   // Uses getPrime to choose a prime number at least as large as
   // the specified size for the initial size of the hash table.
-  hashTable(void);
-
   hashTable(int size = 0);
-
-  ~hashTable();
-
 
   // Insert the specified key into the hash table.
   // If an optional pointer is provided,
@@ -27,7 +22,7 @@ class hashTable {
   // Returns 0 on success,
   // 1 if key already exists in hash table,
   // 2 if rehash fails.
-  int insert(const string &key, void *pv); 
+  int insert(const string &key, void *pv = nullptr); 
 
   // Check if the specified key is in the hash table.
   // If so, return true; otherwise, return false.
@@ -78,7 +73,6 @@ class hashTable {
     hashItem() = default;
   };
 
-  hashItem* list;
   int capacity = 0; // The current capacity of the hash table.
   int filled = 0; // Number of occupied items in the table.
   int primes[8] = {25933, 50021, 100003, 200003, 400009, 800011, 1600033, 3200003};
@@ -99,10 +93,6 @@ class hashTable {
   // The rehash function; makes the hash table bigger.
   // Returns true on success, false if memory allocation fails.
   bool rehash();
-
-  // Return a prime number at least as large as size.
-  // Uses a precomputed sequence of selected prime numbers.
-  static unsigned int getPrime(int size);
 };
 
 #endif //_HASH_H
