@@ -22,17 +22,17 @@ class hashTable {
   // Returns 0 on success,
   // 1 if key already exists in hash table,
   // 2 if rehash fails.
-  int insert(const string &key, void *pv = nullptr); 
+  int insert(const string &key, void *pv = nullptr);
 
   // Check if the specified key is in the hash table.
   // If so, return true; otherwise, return false.
   bool contains(const string &key);
 
-  int getCapacity(); 
+  int getCapacity();
 
   int getFilled();
 
-  string findLoc(int loc);
+  string atLocation(int loc);
   /*
 
   // Get the pointer associated with the specified key.
