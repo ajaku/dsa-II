@@ -3,19 +3,27 @@
 // Then worry about combining with hash
 
 #include <iostream>
-//#include <vector>
+#include <vector>
 #include <string>
 #include "heap.h"
 
 using namespace std;
 
-heap::heap(int capacity) {
-    array.resize(capacity+1);
-    array[0] = 0; // Disregarded element
+heap::heap(int capacity)
+ : mapping(capacity) {
+    heap_cap = capacity;
+    if (capacity == 0) {
+        heap_cap = 100;
+    }
+    array.resize(heap_cap+1);
+    // Disregarded element
+    array[0].id    = "";
+    array[0].key   = 0;
+    array[0].pData = nullptr;
     cur_size = 0;
 }
 
-void heap::insert(int key) {
+void heap::insert(const string &id, int key, void *pv) {
     // Resize condition
     if (cur_size == array.size() - 1) {
         array.resize(array.size() * 2);
@@ -23,65 +31,95 @@ void heap::insert(int key) {
     // Will also likely rehash to increase size here
 
     // Inserting will always be a percolateUp operation 
-    cur_size++;
     // You create a hole at the next index and percolate from there
-    percolateUp(key, cur_size);
+    cur_size++;
+    array[cur_size].id    = id;
+    array[cur_size].key   = key;
+    array[cur_size].pData = pv;
+    mapping.insert(id, &array[cur_size]);
+    percolateUp(cur_size);
 }
 
-void heap::percolateUp(int key, int hole) {
-    // while value at hole > value at parent, keep doing
-    
-    while ((hole > 1) && (key < array[hole/2])) {
-        array[hole] = array[hole/2];
-        hole /= 2;
+int heap::setKey(const string &id, int key) {
+    bool b;
+    node* pn = static_cast<node *> (mapping.getPointer(id, &b));
+    if (!b) { return 1; }
+
+    // Get existing key value, store it (to determine perc up or down)
+    // then map that value to the new key
+    int idx = get_pos(pn);
+    int existing_key = array[idx].key;
+    array[idx].key = key;
+    // If new key is smaller will likely have to percolate up
+    if (existing_key > key) { 
+        percolateUp(idx);
+    } else {
+        percolateDown(idx);
     }
-    array[hole] = key;
+    return 0;
 }
 
-void heap::deleteMin() {
+void heap::deleteMin(string *pId, int *pKey, void *ppData) {
     if (!cur_size) {
         cout << "Is empty\n";
     }
 
     // Replace top with very bottom value and percolate down
     array[1] = array[cur_size--];
+    array[cur_size + 1].id     = "";
+    array[cur_size + 1].key    = 0;
+    array[cur_size + 1].pData  = nullptr;
+    mapping.remove(array[cur_size + 1].id);
     percolateDown(1);
+} 
+
+void heap::remove(const string &id, int *pKey, void *ppData) {
+    bool b;
+    node* pn = static_cast<node *> (mapping.getPointer(id, &b));
+    if (b) {
+        array[pn->key] = array[cur_size--];
+        percolateDown(pn->key);
+    } else {
+        cout << "Does not exist\n";
+    }
 }
 
-void heap::percolateDown(int hole) {
+
+void heap::percolateUp(int pos_cur) {
+    int local_pos = pos_cur;
+    while (local_pos > 1) {
+        int bottom_pos = local_pos;
+        node bottom_node = array[local_pos];
+        local_pos /= 2;
+        node top_node = array[local_pos];
+
+        if (bottom_node.key < top_node.key) {
+            // Save one copy
+            array[bottom_pos] = top_node;
+            array[local_pos] = bottom_node;
+        } else { break; }
+    }
+    mapping.setPointer(array[local_pos].id, &array[local_pos]);
+}
+
+void heap::percolateDown(int pos_cur) {
     int child;
-    int temp = array[hole];
+    node temp = array[pos_cur];
 
-    while (hole*2 <= cur_size) {
-        child = hole*2;
-        if (child != cur_size && array[child + 1] < array[child]) {
+    while (pos_cur*2 <= pos_cur) {
+        child = pos_cur*2;
+        if (child != cur_size && array[child + 1].key < array[child].key) {
             child++;
         }
-        if (array[child] < temp) {
-            array[hole] = array[child];
+        if (array[child].key < temp.key) {
+            array[pos_cur] = array[child];
         } else {
             break;
         }
-        hole = child;
+        pos_cur = child;
     }
-    /*for (; hole*2 <= cur_size; hole = child) {
-        child = hole*2;
-        if (child != cur_size && array[child + 1] < array[child]) {
-            child++;
-        }
-        if (array[child] < temp) {
-            array[hole] = array[child];
-        } else {
-            break;
-        }
-    }*/
-    array[hole] = temp;
-    // Set value in hole to 0
-    array[cur_size + 1] = 0;
 }
 
-void heap::buildHeap() {
-    for (int i = cur_size/2; i > 0; i--) {
-        percolateDown(i);
-    }
+int heap::get_pos(node *pn) {
+    return (pn - &array[0]);
 }

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include "hash.h"
 
 using namespace std;
 
@@ -13,13 +14,12 @@ class heap
 
  public:
 
-    heap(int capacity = 100);
+    heap(int capacity);
 
-    void insert(int key);
-    //void setKey(int key); Will rely on hash
-    void deleteMin();
-    //void remove(string id);
-    void makeEmpty();
+    void insert(const string &id, int key, void *pv = nullptr);
+    int setKey(const string &id, int key);
+    void deleteMin(string *pId = nullptr, int *pKey = nullptr, void *ppData = nullptr);
+    void remove(const string &id, int *pKey = nullptr, void *ppData = nullptr);
 
  private:
     class node {
@@ -30,14 +30,14 @@ class heap
     };
 
     int cur_size;
-    vector<int> array; // would actually be of <node>
-    //hashTable mapping;
+    int heap_cap;
+    vector<node> array; // would actually be of <node>
+    hashTable mapping;
 
-    void buildHeap();
     void percolateDown(int hole);
-    void percolateUp(int key, int hole);
+    void percolateUp(int pos_cur);
 
-    int get_pos(int key);
+    int get_pos(node *pn);
 };
 
 #endif //_HEAP_H
