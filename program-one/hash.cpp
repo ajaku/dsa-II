@@ -77,6 +77,7 @@ bool hashTable::contains(const string &key) {
       return true;
     }
     i++;
+    // Corrected per professor Sable's request
     if (i >= capacity) {
       i = 0;
     }
