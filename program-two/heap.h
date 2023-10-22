@@ -14,30 +14,35 @@ class heap
 
  public:
 
-    heap(int capacity);
+   heap(int capacity);
 
-    int insert(const string &id, int key, void *pv = nullptr);
-    int setKey(const string &id, int key);
-    int deleteMin(string *pId = nullptr, int *pKey = nullptr, void *ppData = nullptr);
-    int remove(const string &id, int *pKey = nullptr, void *ppData = nullptr);
+   // 0 - Success, 1 - Heap Full, 2 - Already Exists
+   int insert(const string &id, int key, void *pv = nullptr);
+   // 0 - Success, 1 - ID Doesn't Exist
+   int setKey(const string &id, int key);
+   // 0 - Success, 1 - Heap Empty
+   int deleteMin(string *pId = nullptr, int *pKey = nullptr, void *ppData = nullptr);
+   // 0 - Success, 1 - ID Doesn't Exist 
+   int remove(const string &id, int *pKey = nullptr, void *ppData = nullptr);
 
  private:
-    class node {
-     public:
-        string id;
-        int key;
-        void *pData;
-    };
+   class node {
+    public:
+      string id;
+      int key;
+      void *pData;
+   };
 
-    int cur_size;
-    int heap_cap;
-    vector<node> array; // would actually be of <node>
-    hashTable mapping;
+   int cur_size;
+   int heap_cap;
+   vector<node> array;
+   hashTable mapping;
 
-    void percolateDown(int pos_cur);
-    void percolateUp(int pos_cur);
+   void percolateDown(int pos_cur);
+   void percolateUp(int pos_cur);
 
-    int get_pos(node *pn);
+   // Returns location of node on heap
+   int get_pos(node *pn);
 };
 
 #endif //_HEAP_H
