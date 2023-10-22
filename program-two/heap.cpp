@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <limits>
 #include "heap.h"
 
 using namespace std;
@@ -23,21 +24,28 @@ heap::heap(int capacity)
     cur_size = 0;
 }
 
-void heap::insert(const string &id, int key, void *pv) {
+int heap::insert(const string &id, int key, void *pv) {
     // Resize condition
     if (cur_size == array.size() - 1) {
-        array.resize(array.size() * 2);
+       cout << "Heap is already full\n"; 
+       return 1;
     }
     // Will also likely rehash to increase size here
 
     // Inserting will always be a percolateUp operation 
     // You create a hole at the next index and percolate from there
+    if (mapping.contains(id)) {
+        cout << "Entry already exists\n";
+        return 2;
+    }
+
     cur_size++;
     array[cur_size].id    = id;
     array[cur_size].key   = key;
     array[cur_size].pData = pv;
     mapping.insert(id, &array[cur_size]);
     percolateUp(cur_size);
+    return 0;
 }
 
 int heap::setKey(const string &id, int key) {
@@ -59,29 +67,37 @@ int heap::setKey(const string &id, int key) {
     return 0;
 }
 
-void heap::deleteMin(string *pId, int *pKey, void *ppData) {
+int heap::deleteMin(string *pId, int *pKey, void *ppData) {
     if (!cur_size) {
-        cout << "Is empty\n";
+        cout << "The heap is empty\n";
+        return 1;
     }
 
     // Replace top with very bottom value and percolate down
-    array[1] = array[cur_size--];
-    array[cur_size + 1].id     = "";
-    array[cur_size + 1].key    = 0;
-    array[cur_size + 1].pData  = nullptr;
-    mapping.remove(array[cur_size + 1].id);
+    mapping.remove(array[1].id);
+    cur_size;
+    // Place last item into the top
+    array[1] = array[cur_size];
+    // Set elements of last item to 0
+    array[cur_size].id     = "";
+    array[cur_size].key    = 0;
+    array[cur_size].pData  = nullptr;
+    cur_size--;
     percolateDown(1);
+    return 0;
 } 
 
-void heap::remove(const string &id, int *pKey, void *ppData) {
+int heap::remove(const string &id, int *pKey, void *ppData) {
     bool b;
     node* pn = static_cast<node *> (mapping.getPointer(id, &b));
-    if (b) {
-        array[pn->key] = array[cur_size--];
-        percolateDown(pn->key);
-    } else {
-        cout << "Does not exist\n";
+    if (!b) {
+        cout << "Entry does not exist\n";
+        return 1;
     }
+
+    array[pn->key] = array[cur_size--];
+    percolateDown(pn->key);
+    return 0;
 }
 
 
@@ -103,20 +119,28 @@ void heap::percolateUp(int pos_cur) {
 }
 
 void heap::percolateDown(int pos_cur) {
-    int child;
-    node temp = array[pos_cur];
+    // Inspired by : https://courses.cs.washington.edu/courses/cse373/17su/lectures/Lecture%2012%20-%20Binary%20Heaps.pdf
+    while (2*pos_cur <= cur_size) {
+        int left_pos    = 2*pos_cur;
+        int right_pos   = left_pos + 1;
 
-    while (pos_cur*2 <= pos_cur) {
-        child = pos_cur*2;
-        if (child != cur_size && array[child + 1].key < array[child].key) {
-            child++;
-        }
-        if (array[child].key < temp.key) {
-            array[pos_cur] = array[child];
-        } else {
-            break;
-        }
-        pos_cur = child;
+        node left_node  = array[left_pos];
+        node right_node = array[right_pos];
+        int target;
+
+        if (right_pos > cur_size || (left_node.key < right_node.key)) {
+            target = left_pos;
+        } else { target = right_pos; }
+
+        if (array[target].key < array[pos_cur].key) {
+            array[target] = array[pos_cur];
+
+            if (target == left_pos) {
+                array[pos_cur] = left_node;
+            } else { array[pos_cur] = right_node; }
+
+            pos_cur = target;
+        } else { break; }
     }
 }
 

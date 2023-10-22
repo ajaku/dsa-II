@@ -16,10 +16,10 @@ class heap
 
     heap(int capacity);
 
-    void insert(const string &id, int key, void *pv = nullptr);
+    int insert(const string &id, int key, void *pv = nullptr);
     int setKey(const string &id, int key);
-    void deleteMin(string *pId = nullptr, int *pKey = nullptr, void *ppData = nullptr);
-    void remove(const string &id, int *pKey = nullptr, void *ppData = nullptr);
+    int deleteMin(string *pId = nullptr, int *pKey = nullptr, void *ppData = nullptr);
+    int remove(const string &id, int *pKey = nullptr, void *ppData = nullptr);
 
  private:
     class node {
@@ -34,7 +34,7 @@ class heap
     vector<node> array; // would actually be of <node>
     hashTable mapping;
 
-    void percolateDown(int hole);
+    void percolateDown(int pos_cur);
     void percolateUp(int pos_cur);
 
     int get_pos(node *pn);
