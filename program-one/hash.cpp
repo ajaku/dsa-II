@@ -50,6 +50,19 @@ int hashTable::insert(const string &key, void *pv) {
       filled++;
       return 0;
     }
+    if (data[loc].isDeleted) {
+      int i = loc;
+      while (data[i].isOccupied) {
+        if (i >= capacity - 1) {
+          i = -1;
+        }
+        i++;
+      }
+      data[i].key = key;
+      data[i].isOccupied = true;
+      filled++;
+      return 0;
+    }
     return 1;
   }
   data[loc].key = key;
@@ -69,7 +82,22 @@ bool hashTable::contains(const string &key) {
   int loc = hash(key); // Location of key
   if (!data[loc].isOccupied)  { return false; } // value doesn't exist
 
-  if (data[loc].key == key)   { return true; } // Value found
+  if (data[loc].key == key) { 
+    if (!data[loc].isDeleted) { return true; } else {
+      // Item was deleted, need to see if a non-deleted copy exists
+      int i = loc;
+      while (data[i].isOccupied) {
+        if ((data[i].key == key) && !data[i].isDeleted) {
+          return true;
+        }
+        i++;
+        if (i >= capacity) {
+          i = 0;
+        }
+      }
+    }
+  return false; 
+  }
 
   int i = loc;
   while (data[i].isOccupied) {
@@ -77,7 +105,6 @@ bool hashTable::contains(const string &key) {
       return true;
     }
     i++;
-    // Corrected per professor Sable's request
     if (i >= capacity) {
       i = 0;
     }
@@ -96,6 +123,37 @@ int hashTable::getFilled() {
 string hashTable::atLocation(int loc) {
   return data[loc].key;
 }
+
+void* hashTable::getPointer(const string &key, bool *b) {
+  if (!contains(key)) {
+    *b = false;
+    return nullptr;
+  }
+
+  *b = true;
+  return data[hash(key)].pv;
+}
+
+int hashTable::setPointer(const string &key, void *pv) {
+  if (!contains(key)) {
+    return 1;
+  }
+
+  data[hash(key)].pv = pv;
+  return 0;
+}
+
+bool hashTable::remove(const string &key) {
+  if (!contains(key)) {
+    return 1;
+  }
+
+  data[hash(key)].isDeleted  = 1;
+
+  return 0;
+}
+
+// Private Methods
 
 // The hash function.
 int hashTable::hash(const string &key) {

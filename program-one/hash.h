@@ -33,7 +33,6 @@ class hashTable {
   int getFilled();
 
   string atLocation(int loc);
-  /*
 
   // Get the pointer associated with the specified key.
   // If the key does not exist in the hash table, return nullptr.
@@ -52,7 +51,6 @@ class hashTable {
   // false if the specified key is not in the hash table.
   bool remove(const std::string &key);
 
-  */
 
  private:
 
