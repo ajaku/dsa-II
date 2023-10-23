@@ -18,11 +18,11 @@ class heap
 
    // 0 - Success, 1 - Heap Full, 2 - Already Exists
    int insert(const string &id, int key, void *pv = nullptr);
-   // 0 - Success, 1 - ID Doesn't Exist
+   // 0 - Success, 1 - ID Does not exist
    int setKey(const string &id, int key);
    // 0 - Success, 1 - Heap Empty
    int deleteMin(string *pId = nullptr, int *pKey = nullptr, void *ppData = nullptr);
-   // 0 - Success, 1 - ID Doesn't Exist 
+   // 0 - Success, 1 - ID Does not Exist 
    int remove(const string &id, int *pKey = nullptr, void *ppData = nullptr);
 
  private:
