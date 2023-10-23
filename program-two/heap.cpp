@@ -34,6 +34,7 @@ int heap::insert(const string &id, int key, void *pv) {
     array[cur_size].key   = key;
     array[cur_size].pData = pv;
 
+    // Will automatically rehash if too many items are placed
     mapping.insert(id, &array[cur_size]);
     if (cur_size == 1) { return 0; }
 
@@ -150,9 +151,10 @@ void heap::percolateUp(int pos_cur) {
             // Save one copy
             array[bottom_pos] = top_node;
             array[local_pos] = bottom_node;
+            mapping.setPointer(array[bottom_pos].id, &array[bottom_pos]);
+            mapping.setPointer(array[local_pos].id, &array[local_pos]);
         } else { break; }
     }
-    mapping.setPointer(array[local_pos].id, &array[local_pos]);
 }
 
 void heap::percolateDown(int pos_cur) {
@@ -174,9 +176,14 @@ void heap::percolateDown(int pos_cur) {
             array[target] = array[pos_cur];
 
             if (target == left_pos) {
+                // left child is smaller than parent
                 array[pos_cur] = left_node;
-            } else { array[pos_cur] = right_node; }
-
+                mapping.setPointer(array[pos_cur].id, &array[pos_cur]);
+            } else { 
+                array[pos_cur] = right_node; 
+                mapping.setPointer(array[pos_cur].id, &array[pos_cur]);
+            }
+            mapping.setPointer(array[target].id, &array[target]);
             pos_cur = target;
         } else { break; }
     }
