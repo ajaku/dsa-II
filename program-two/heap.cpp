@@ -82,6 +82,8 @@ int heap::deleteMin(string *pId, int *pKey, void *ppData) {
     }
     // Place last item into the top
     array[1] = array[cur_size];
+    mapping.setPointer(array[1].id, &array[1]);
+    // call setpointer here 
 
     // Set elements of last item to 0
     array[cur_size].id     = "";
@@ -122,6 +124,8 @@ int heap::remove(const string &id, int *pKey, void *ppData) {
     }
 
     array[get_pos(pn)] = array[cur_size];
+    mapping.setPointer(array[get_pos(pn)].id, pn);
+    // Need to call setpointer here
 
     array[cur_size].id     = "";
     array[cur_size].key    = 0;
