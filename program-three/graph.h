@@ -15,8 +15,9 @@ using namespace std;
 class graph {
     public:
         graph(int verticies);
-        void addEdge(string &parent, string &child, int cost);
-        int  dijkstra(string &vertex);
+        void addEdge(const string &parent, const string &child, int cost);
+        int  dijkstra(const string &vertex);
+        void parseDijkstra();
 
     private:
         class Vertex {
@@ -30,6 +31,7 @@ class graph {
                 int            dist;
                 bool           known;
                 Vertex        *parent;
+                vector<string> path;
                 vector<edge>   adjVert;
         };
 
