@@ -2,27 +2,23 @@
 #include <vector>
 #include <string>
 #include <climits>
+#include <iostream>
+#include <fstream>
 #include "graph.h"
 
 using namespace std;
 
-graph::graph(int verticies)
-    : minHeap(verticies), knownHash(verticies) {
-    numVerts = verticies;
+#define HEAP_SIZE 1000
+#define HASH_SIZE 1000
+
+graph::graph()
+     : knownHash(HASH_SIZE) {
+        numVerts = 0;
 }
 
-
-/* Possibilites:
- * 1. First time adding edge, insert into verticies then add child
- * to adjacency list. Add node to hash to quickly find, but set known
- * to false.
- * 2. Already in verticies, so just append child to adjacency list
- * No need to add to hash as it is already there
- */
 void graph::addEdge(const string &parent, const string &child, int cost) {
     // If hashTable already contains item, get the pointer from the heap
     // and set the edge cost to cost and parent of that vertex to be 
-
     Vertex *parentNode;
     Vertex *childNode;
     bool pExists = true;
@@ -31,18 +27,17 @@ void graph::addEdge(const string &parent, const string &child, int cost) {
     if (!knownHash.contains(parent)) {
         parentNode = new Vertex {parent, INT_MAX, false, nullptr};
         knownHash.insert(parent, parentNode);
-        minHeap.insert(parent, parentNode->dist, parentNode);
         verticies.push_back(parentNode);
+        numVerts++;
     } else { 
         parentNode = (Vertex *)knownHash.getPointer(parent, &pExists);
     }
 
-
     if (!knownHash.contains(child)) {
         childNode = new Vertex {child, INT_MAX, false, nullptr};
         knownHash.insert(child, childNode);
-        minHeap.insert(child, childNode->dist, childNode);
         verticies.push_back(childNode);
+        numVerts++;
     } else {
         childNode = (Vertex *)knownHash.getPointer(child, &cExists);
     } 
@@ -55,21 +50,33 @@ void graph::addEdge(const string &parent, const string &child, int cost) {
     } else { /*What do we do here? Seems like an error condition*/ }
 }
 
-int graph::dijkstra(const string &vertex) {
-    bool startExists;
-    Vertex *startNode = (Vertex *)knownHash.getPointer(vertex, &startExists);
+int graph::dijkstra() {
+    bool startExists = false;
+    Vertex *startNode;
+    string vertex; 
 
-    if (!startExists) { return -1; }
+    while (!startExists) {
+        cout << "Enter name of starting vertex: ";
+        cin >> vertex;
+        startNode = (Vertex *)knownHash.getPointer(vertex, &startExists);
+    }
+
+    clock_t start = clock();
 
     startNode->dist   = 0;
     startNode->parent = NULL;
-    startNode->path.push_back(startNode->id);
+
+    // Is there a more efficient way to do this?
+    heap minHeap(numVerts);
+    for (int i = 0; i < numVerts; i++) {
+        minHeap.insert(verticies[i]->id, verticies[i]->dist, verticies[i]);
+    }
+
     minHeap.setKey(startNode->id, 0);
 
 
     int counter = 0;
-    while (counter != numVerts-1) {
-        cout << "Counter : " << counter << "\n";
+    while (counter != numVerts) {
         string heapVal;
         bool minExists = false;
         Vertex* newMin;
@@ -87,7 +94,6 @@ int graph::dijkstra(const string &vertex) {
             // Goal is to prevent overflow math
             if (dist < 0) { dist = INT_MAX; }
             if (dist < it->eChild->dist) {
-                newMin->path.push_back(it->eChild->id);
                 it->eChild->dist   = dist;
                 it->eChild->parent = newMin;
                 // Update the heap to reflect the new minimum value for future deletion
@@ -96,20 +102,37 @@ int graph::dijkstra(const string &vertex) {
         }
         counter++;
     }
+    clock_t end = clock();
+    double time_elapsed = double(end - start) / CLOCKS_PER_SEC;
+    cout << "Total time (in seconds) to apply Dijkstra's algorithm: " << time_elapsed << "\n";
     return 1;
 }
 
-void graph::parseDijkstra() {
-    for (int i = 0; i < numVerts - 1; i++) {
-        cout << verticies[i]->id << ": ";
+void graph::parseDijkstra(string outfile) {
+    ofstream output;
+    output.open(outfile);
+    for (int i = 0; i < numVerts; i++) {
+        output << verticies[i]->id << ": ";
+        Vertex *tmp = verticies[i]; 
         if (verticies[i]->dist == INT_MAX) {
-            cout << "NO PATH\n";
+            output << "NO PATH\n";
         } else {
-            cout << "[";
-            for (auto &s : verticies[i]->path) {
-                cout << s << ",";
+            output << verticies[i]->dist << " [";
+            while (tmp != nullptr) {
+                verticies[i]->path.push_front(tmp->id);
+                tmp = tmp->parent;
             }
-            cout << "]\n";
+            list<string>::iterator it;
+            int j = 0;
+            for (it = verticies[i]->path.begin(); it != verticies[i]->path.end(); ++it) {
+                output << *it;
+                if (j < verticies[i]->path.size()-1) {
+                    output << ", ";
+                }
+                j++;
+            }
+            output << "]\n";
         }
     }
+    output.close();
 }

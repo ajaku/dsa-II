@@ -1,5 +1,5 @@
-#ifndef _DIJKSTRA_H
-#define _DIJKSTRA_H
+#ifndef _GRAPH_H
+#define _GRAPH_H
 
 #include <iostream>
 #include <vector>
@@ -14,10 +14,10 @@ using namespace std;
 
 class graph {
     public:
-        graph(int verticies);
+        graph();
         void addEdge(const string &parent, const string &child, int cost);
-        int  dijkstra(const string &vertex);
-        void parseDijkstra();
+        int  dijkstra();
+        void parseDijkstra(string outfile);
 
     private:
         class Vertex {
@@ -31,15 +31,14 @@ class graph {
                 int            dist;
                 bool           known;
                 Vertex        *parent;
-                vector<string> path;
+                list<string>   path;
                 vector<edge>   adjVert;
         };
 
         int numVerts; 
     
         hashTable       knownHash;
-        heap            minHeap;
         vector<Vertex*> verticies;
 };
 
-#endif //_DIJKSTRA_H
+#endif //_GRAPH_H
