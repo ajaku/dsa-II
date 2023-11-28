@@ -1,14 +1,11 @@
-merge.exe: merge.o hash.o
-	g++ -o merge.exe merge.o hash.o
+merge.exe: merge.o
+	g++ -o merge.exe merge.o
 
 merge.o: merge.cpp
 	g++ -c merge.cpp
 
-hash.o: hash.cpp hash.h
-	g++ -c hash.cpp
-
 debug:
-	g++ -g -o mergeDebug.exe hash.cpp merge.cpp
+	g++ -g -o mergeDebug.exe merge.cpp
 
 clean:
 	rm -f *.exe *.o *.stackdump *~
