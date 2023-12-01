@@ -16,7 +16,7 @@ using namespace std;
 bool matrix[MAX_A + 1][MAX_B + 1]; // Make room for extra top node
 
 // s1 is first inp, s2 is 3rd inp, s3 is test
-string isInterleaved(string s1, string s2, string s3) {
+string isInterleaved(const string s1, const string s2, const string s3) {
 	int s1_len = s1.length();
 	int s2_len = s2.length();
 	int s3_len = s3.length();
@@ -86,34 +86,25 @@ string isInterleaved(string s1, string s2, string s3) {
 	cout << "\n";
 	*/
 
-	// Return true if match, return false if not
-	// Match condition is: matrix[s1_len][s2_len]
-	
 	/* Come up with a way to determine which string led us where */
-	string fs = "";
+	string fs = ""; 
 
 	if (matrix[s2_len][s1_len]) {
-//		stack<char> final_str;
 		int i = s2_len;
 		int j = s1_len;
-		// check top
 		while ((i+j) >= 0) {
 			if (matrix[i-1][j]) {
-//				final_str.push(s2[i-1]);
-				fs = s2[i-1] + fs;
+				if (i > 0) {
+					fs = s2[i-1] + fs;
+				}
 				i--;
 			} else {
-				//cout << char(toupper(s1[j-1])) << " ";
-//				final_str.push(char(toupper(s1[j-1])));
-				fs = (char)(toupper(s1[j-1])) + fs;
+				if (j > 0) {
+					fs = (char)(toupper((unsigned)(s1[j-1]))) + fs;
+				}
 				j--;
 			}
 		}
-		// Put items into a new string 
-//		while (!final_str.empty()) {
-//			fs += (char)(final_str.top());
-//			final_str.pop();
-//		}
 		return fs += '\n';
 	} else {
 		return "*** NOT A MERGE ***\n";
@@ -154,20 +145,6 @@ void parse_doc() {
 
 
 int main() {
-	// a -> b -> c
-//	cout << isInterleaved("mbn", "abx", "ambbnx");
-/*	isInterleaved("chocolate", "chips", "cchocholaiptes");
-	isInterleaved("chocolate", "chips", "bananasplit");	
-	isInterleaved("abac", "bad", "ababacd");	
-	isInterleaved("hello", "world", "wohrelldol");	
-	isInterleaved("ab", "ba", "abab");	
-	isInterleaved("zzzzzzzzzzzzzzzzzzzzab",
-		      "zzzzzzzzzzzzzzzzzzzzac",
-		      "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzacab");
-	isInterleaved("zzzzzzzzzzzzzzzzzzzzabc",
-		      "zzzzzzzzzzzzzzzzzzzzacb",
-		      "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzabcbac");
-		      */
 	parse_doc();
 	return 0;
 }
