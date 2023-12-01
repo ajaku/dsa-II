@@ -4,6 +4,8 @@
 #include <ctime>
 #include <string>
 #include <cstdlib>
+#include <stack>
+#include <vector>
 
 #define MAX_A 1000
 #define MAX_B 1000
@@ -11,133 +13,25 @@
 
 using namespace std;
 
-bool matrix[101][101]; // Make room for extra top node
+bool matrix[MAX_A + 1][MAX_B + 1]; // Make room for extra top node
 
 // s1 is first inp, s2 is 3rd inp, s3 is test
-void isInterleaved(const string s1, const string s2, const string s3) {
-        int s1_len = s1.length();
-        int s2_len = s2.length();
-        int s3_len = s3.length();
+string isInterleaved(string s1, string s2, string s3) {
+	int s1_len = s1.length();
+	int s2_len = s2.length();
+	int s3_len = s3.length();
 
-        if (s3_len != (s1_len + s2_len)) { cout << "NO MATCH\n"; }
+	if (s3_len != (s1_len + s2_len)) { return "*** NOT A MERGE ***\n"; }
 
-        matrix[0][0] = true;
+	// Will be using the same matrix for multiple computations
+	// thus, need to zero all elements after each run
+	for (int r = 0; r < MAX_A + 1; r++) {
+		for (int c = 0; c < MAX_B + 1; c++) {
+			matrix[r][c] = false;
+		}
+	}
 
-	/*    
-	 * Known Example:
-	 *    s3 = ambbnx
-	 *    s1 = mbn
-	 *    s2 = abx
-	 *    
-	 *      a m b b n x
-	 * s1 = m b n
-	 * s2 = a b x   
-	 * r = 0; c = 0;
-	 *
-	 *      m b b n x
-	 *
-	 * s1 = m b n
-	 * s2 = b x   
-	 * r = 1; c = 0; 
-	 *
-	 *      b b n x
-	 * s1 = b n
-	 * s2 = b x   
-	 * r = 1; c = 1;
-	 * (Can branch both ways from here!)
-	 *
-	 *      b n x  or      b n x
-	 * s1 = b n	  s1 = n
-	 * s2 = x         s2 = b x 
-	 * r = 2; c = 1;  r = 1; c = 2;
-	 *
-	 *      n x  or        n x
-	 * s1 = n	  s1 = n
-	 * s2 = x         s2 = x 
-	 * r = 2; c = 2;  r = 2; c = 2; 
-	 *
-	 *      x  or          x
-	 * s1 = 	  s1 = 
-	 * s2 = x         s2 = x 
-	 * r = 2; c = 3;  r = 2; c = 3; 
-	 *
-	 *        or          
-	 * s1 = 	  s1 = 
-	 * s2 =           s2 =  
-	 * r = 3; c = 3;  r = 3; c = 3; 
-	 *
-	 * MATCH!
-	 *
-	 *       1 2 3
-	 *    s1 m b n
-	 *  s2 T 
-	 * 1 a T T T	     
-	 * 2 b   T T T
-	 * 3 x       T
-	 *
-	 *
-	 *       1 2 3
-	 *    s1 m b n
-	 *  s2 T F F F
-	 * 1 a T T T F	       
-	 * 2 b F T T T
-	 * 3 x F F F T
-	 *
-	 * Sable Example:
-	 *
-	 *    s3 = ababacd 
-	 *    s1 = abac 
-	 *    s2 = bad
-	 *    
-	 *      a b a b a c d
-	 * s1 = a b a c   
-	 * s2 = b a d 
-	 *
-	 *      b a b a c d
-	 * s1 = b a c   
-	 * s2 = b a d 
-	 * (BRANCH!)
-	 *
-	 *      a b a c d            a b a c d
-	 * s1 = a c   		s1 = b a c
-	 * s2 = b a d		s2 = a d
-	 *
-	 *      b a c d              b a c d
-	 * s1 = c   		s1 = b a c
-	 * s2 = b a d		s2 = d
-	 *
-	 *
-	 *      a c d                a c d
-	 * s1 = c   		s1 = b a c
-	 * s2 = a d		s2 = 
-	 * 			(BRANCH IS DEAD)
-	 *
-	 *      c d            
-	 * s1 = c   		
-	 * s2 = d	
-	 *
-	 *      d            
-	 * s1 =   		
-	 * s2 = d	
-	 *
-	 * MATCH!
-	 *
-	 *
-	 *       1 2 3 4
-	 *    s1 a b a c 
-	 *  s2 T 
-	 * 1 b 	       
-	 * 2 a 
-	 * 3 d
-	 *
-	 *   First iterate through characters of s1,
-	 *   see if they are equal to respective char at idx-1
-	 *   and if the previous token (to the left) was true
-	 *
-	 *   Next iterate through characters of s2,
-	 *   repeat same process above but for columns
-	 *
-	 */
+	matrix[0][0] = true;
 
 	// Fill out the first row
 	for (int j = 1; j <= s1_len; j++) {
@@ -167,11 +61,11 @@ void isInterleaved(const string s1, const string s2, const string s3) {
 					matrix[i][j] = true;
 				}
 			}
-
-
 		}
 	}
+	
 	// Print out dynamic programming table for easier debugging
+	/*
 	cout << "\n    ";
 
 	for (int i = 0; i < s1_len; i++) {
@@ -184,20 +78,96 @@ void isInterleaved(const string s1, const string s2, const string s3) {
 		} else {
 			cout << s2[i-1] << " ";
 		}
-		for (int c = 0; c <= s1_len; c++) {
-			cout << matrix[i][c] << " ";
+		for (int j = 0; j <= s1_len; j++) {
+			cout << matrix[i][j] << " ";
 		}
 		cout << "\n";
 	}
 	cout << "\n";
+	*/
+
+	// Return true if match, return false if not
+	// Match condition is: matrix[s1_len][s2_len]
+	
+	/* Come up with a way to determine which string led us where */
+	string fs = "";
+
+	if (matrix[s2_len][s1_len]) {
+//		stack<char> final_str;
+		int i = s2_len;
+		int j = s1_len;
+		// check top
+		while ((i+j) >= 0) {
+			if (matrix[i-1][j]) {
+//				final_str.push(s2[i-1]);
+				fs = s2[i-1] + fs;
+				i--;
+			} else {
+				//cout << char(toupper(s1[j-1])) << " ";
+//				final_str.push(char(toupper(s1[j-1])));
+				fs = (char)(toupper(s1[j-1])) + fs;
+				j--;
+			}
+		}
+		// Put items into a new string 
+//		while (!final_str.empty()) {
+//			fs += (char)(final_str.top());
+//			final_str.pop();
+//		}
+		return fs += '\n';
+	} else {
+		return "*** NOT A MERGE ***\n";
+	}
 }
+
+void parse_doc() {
+    fstream inpFile;
+    cout << "Enter name of input file: ";
+    string inp;
+    cin >> inp;
+    inpFile.open(inp, ios::in);
+
+    fstream outFile;
+    cout << "Enter name of ouput file: ";
+    string out;
+    cin >> out;
+    outFile.open(out, ios::out);
+
+    string line;
+    int i = 0;
+    string args[3] = {""};
+    while (getline(inpFile, line)) {
+	    if (i == 0) { args[i] = line; }
+	    if (i == 1) { args[i] = line; }
+	    if (i == 2) { args[i] = line; }
+	    if (i == 2) {
+		outFile << isInterleaved(args[0], args[1], args[2]);
+		i = 0;
+		for (int j = 0; j <= 2; j++) {
+			args[j] = "";
+		}
+	    } else { i++; }
+    }
+    inpFile.close();
+    outFile.close();
+}
+
 
 int main() {
 	// a -> b -> c
-	const string s1 = "hello";
-	// x -> y -> z
-	const string s2 = "world";
-	// Would be a valid version
-	const string concat = "wohrelldol";
-	isInterleaved(s1, s2, concat);	
+//	cout << isInterleaved("mbn", "abx", "ambbnx");
+/*	isInterleaved("chocolate", "chips", "cchocholaiptes");
+	isInterleaved("chocolate", "chips", "bananasplit");	
+	isInterleaved("abac", "bad", "ababacd");	
+	isInterleaved("hello", "world", "wohrelldol");	
+	isInterleaved("ab", "ba", "abab");	
+	isInterleaved("zzzzzzzzzzzzzzzzzzzzab",
+		      "zzzzzzzzzzzzzzzzzzzzac",
+		      "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzacab");
+	isInterleaved("zzzzzzzzzzzzzzzzzzzzabc",
+		      "zzzzzzzzzzzzzzzzzzzzacb",
+		      "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzabcbac");
+		      */
+	parse_doc();
+	return 0;
 }
