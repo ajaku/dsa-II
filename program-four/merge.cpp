@@ -199,5 +199,5 @@ int main() {
 	const string s2 = "world";
 	// Would be a valid version
 	const string concat = "wohrelldol";
-	
+	isInterleaved(s1, s2, concat);	
 }
