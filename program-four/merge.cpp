@@ -13,10 +13,6 @@ using namespace std;
 
 bool matrix[101][101]; // Make room for extra top node
 
-
-// Code below follows directly from:
-// https://www.youtube.com/watch?v=U49f4WpAhV4
-
 // s1 is first inp, s2 is 3rd inp, s3 is test
 void isInterleaved(const string s1, const string s2, const string s3) {
         int s1_len = s1.length();
@@ -36,46 +32,54 @@ void isInterleaved(const string s1, const string s2, const string s3) {
 	 *   x 
 	 *
 	 */
-	
-	// Initialization Step
-	for (int r = 1; r <= s1_len; r++) {
-		if(s3[r-1] == s1[r-1]) {
-			matrix[0][r] = matrix[0][r-1];
+
+	// Fill out the first row
+	for (int j = 1; j <= s1_len; j++) {
+		if ((s1[j-1] == s3[j-1]) && matrix[0][j-1]) {
+			matrix[0][j] = true;		
 		}
 	}
-	for (int c = 1; c <= s2_len; c++) {
-		if(s3[c-1] == s2[c-1]) {
-			matrix[c][0] = matrix[c-1][0];
+	// Fill out the first col
+	for (int i = 1; i <= s2_len; i++) {
+		if ((s2[i-1] == s3[i-1]) && matrix[i-1][0]) {
+			matrix[i][0] = true;		
 		}
 	}
-        for (int r = 1; r <= s1_len; r++) {
-            for (int c = 1; c <= s2_len; c++) {
 
-		    if (s3[r+c-1] == s2[r-1]) {
-			matrix[r][c] = matrix[r-1][c];
-		    }
-
-		    if (s3[r+c-1] == s1[c-1]) {
-		    	if (!matrix[r][c]) { 
-				matrix[r][c] = matrix[r][c-1]; 
+	// Fill out matrix
+	for (int i = 1; i <= s2_len; i++) {
+		for (int j = 1; j <= s1_len; j++) {
+			// Match in s1 means check left item
+			if (s1[j-1] == s3[j+i-1]) {
+				if (matrix[i][j-1]) {
+					matrix[i][j] = true;
+				}
 			}
-		    }
+			// Match in s2 means check above item
+			if (s2[i-1] == s3[j+i-1]) {
+				if (matrix[i-1][j]) {
+					matrix[i][j] = true;
+				}
+			}
+
 
 		}
-        }
-
+	}
 	// Print out dynamic programming table for easier debugging
-
-	cout << "\n  ";
+	cout << "\n    ";
 
 	for (int i = 0; i < s1_len; i++) {
 		cout << s1[i] << " ";
 	}
 	cout << "\n";
-	for (int r = 0; r < s2_len; r++) {
-		cout << s2[r] << " ";
-		for (int c = 0; c < s1_len; c++) {
-			cout << matrix[r][c] << " ";
+	for (int i = 0; i <= s2_len; i++) {
+		if (i == 0) {
+			cout << "  ";
+		} else {
+			cout << s2[i-1] << " ";
+		}
+		for (int c = 0; c <= s1_len; c++) {
+			cout << matrix[i][c] << " ";
 		}
 		cout << "\n";
 	}
@@ -84,11 +88,11 @@ void isInterleaved(const string s1, const string s2, const string s3) {
 
 int main() {
 	// a -> b -> c
-	const string s1 = "chocolate";
+	const string s1 = "hello";
 	// x -> y -> z
-	const string s2 = "chips";
+	const string s2 = "world";
 	// Would be a valid version
-	const string concat = "cchocholaiptes";
+	const string concat = "wohrelldol";
 	isInterleaved(s1, s2, concat);
 	return 0;
 }
